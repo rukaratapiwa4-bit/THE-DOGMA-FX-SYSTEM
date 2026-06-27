@@ -83,7 +83,7 @@ class HealthHandler(BaseHTTPRequestHandler):
                 </style>
             </head>
             <body>
-                <h1>🐕 THE DOGMA FX SYSTEM</h1>
+                <h1>THE DOGMA FX SYSTEM</h1>
                 <div class="status live">🟢 SYSTEM IS LIVE</div>
                 <div class="info">Version 6.0 — 10-Layer Architecture</div>
                 <div class="info">📊 Running 24/7 on Render.com</div>
@@ -119,9 +119,9 @@ class HealthHandler(BaseHTTPRequestHandler):
     
     def log_message(self, fmt, *args):
         pass
-        <head><title>🐕 THE DOGMA FX SYSTEM</title></head>
+        <head><title>THE DOGMA FX SYSTEM</title></head>
         <body style="background:#0f1117;color:#e2e8f0;font-family:Arial;padding:40px;text-align:center">
-            <h1 style="font-size:48px">🐕 THE DOGMA FX SYSTEM</h1>
+            <h1 style="font-size:48px">THE DOGMA FX SYSTEM</h1>
             <p style="font-size:20px;color:#94a3b8">Version 6.0 — Running on Render 24/7</p>
             <p style="font-size:16px;color:#64748b">"Quality over quantity. Most days = NULL."</p>
             <hr style="border-color:#2d3142;margin:30px 0">
