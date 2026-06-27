@@ -1,50 +1,7 @@
 """
-═══════════════════════════════════════════════════════════════════════════════
-THE DOGMA FX SYSTEM — VERSION 6.0
-FILE: main.py
-LAYER: SYSTEM INTEGRATION — MASTER ORCHESTRATOR
-═══════════════════════════════════════════════════════════════════════════════
-
-PURPOSE:
-    Wires all 10 layers into one running system.
-    Manages startup, shutdown, the main signal loop, and the background
-    learning/monitoring threads.
-
-SIGNAL FLOW (per tick cycle):
-    Layer 1  → FeedManager + ancillary feeds (price, news, COT, multi-asset,
-                                               options, calendar)
-        ↓
-    Layer 2  → FeatureEngine.compute_all_pairs()
-        ↓
-    Layer 3  → DecisionEngine.decide_all_pairs()
-        ↓
-    Gate 1   → RiskControlManager.process()          (Hard Safety)
-        ↓
-    Gate 4B  → PortfolioExposureManager.process()    (Portfolio)
-        ↓
-    Layer 5  → ExecutionEngine.execute()              (Fill + PFVW)
-        ↓
-    Layer 6  → JournalManager.record_trade_open/close/null()
-        ↓ (background threads)
-    Layer 7  → ValidationEngine (scheduled)
-    Layer 8  → LearningLoop (scheduled)
-    Layer 9  → ChaosModeEngine (parallel — every tick)
-    Layer 10 → OptimizationEngine (every tick on open positions)
-
-THREADING MODEL:
-    Main thread      → signal loop (tick → decision → execution)
-    Chaos thread     → Layer 9 stress monitoring (every tick)
-    Optimization thread → Layer 10 position management (every 30s)
-    Learning thread  → Layers 7+8 cycle (every 6 hours)
-    Feed threads     → Layer 1 ancillary feeds (each has own schedule)
-
-CONFIGURATION:
-    All runtime config lives in SystemConfig dataclass below.
-    Paper trading = True by default — set to False for live.
-
-═══════════════════════════════════════════════════════════════════════════════
+THE DOGMA FX SYSTEM - VERSION 6.0
+DEPLOYED ON RENDER.COM - 24/7
 """
-
 import os
 import sys
 import time
@@ -59,52 +16,53 @@ from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from datetime import datetime, timezone
 
-# ── WEB SERVER FOR RENDER (DOES NOT AFFECT SYSTEM) ──
+# ── WEB SERVER (FIXED) ──
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        self.wfile.write("""
+        html = f"""
         <html>
-        <head><title>🐕 THE DOGMA FX SYSTEM</title>
+        <head><title>THE DOGMA FX SYSTEM</title>
         <meta http-equiv="refresh" content="5">
         <style>
-            body{background:#0f1117;color:#e2e8f0;font-family:Arial;padding:40px;text-align:center}
-            h1{font-size:48px;color:#f1f5f9}
-            .status{color:#22c55e;font-size:24px;margin:20px 0}
-            .info{color:#94a3b8;font-size:16px;margin:10px 0}
-            .box{background:#1a1d27;border:1px solid #2d3142;border-radius:12px;padding:20px;max-width:600px;margin:20px auto}
-            .layer{color:#64748b;font-size:14px;padding:5px 0;border-bottom:1px solid #1e2333}
-            .green{color:#22c55e}
-            .live{color:#22c55e;font-weight:bold}
+            body{{background:#0f1117;color:#e2e8f0;font-family:Arial;padding:40px;text-align:center}}
+            h1{{font-size:48px;color:#f1f5f9}}
+            .status{{color:#22c55e;font-size:24px;margin:20px 0}}
+            .info{{color:#94a3b8;font-size:16px;margin:10px 0}}
+            .box{{background:#1a1d27;border:1px solid #2d3142;border-radius:12px;padding:20px;max-width:600px;margin:20px auto}}
+            .layer{{color:#64748b;font-size:14px;padding:5px 0;border-bottom:1px solid #1e2333}}
+            .green{{color:#22c55e}}
+            .live{{color:#22c55e;font-weight:bold}}
         </style>
         </head>
         <body>
-            <h1>🐕 THE DOGMA FX SYSTEM</h1>
-            <div class="status live">🐕 SYSTEM IS LIVE</div>
+            <h1>THE DOGMA FX SYSTEM</h1>
+            <div class="status live">SYSTEM IS LIVE</div>
             <div class="info">Version 6.0 - 10-Layer Architecture</div>
             <div class="info">Running 24/7 on Render.com</div>
             <div class="box">
-                <div class="layer">Layer 1: Data Perception - ACTIVE</div>
-                <div class="layer">Layer 2: Feature Engine - ACTIVE</div>
-                <div class="layer">Layer 3: Decision Engine - ACTIVE</div>
-                <div class="layer">Layer 4A: Risk Control - ACTIVE</div>
-                <div class="layer">Layer 4B: Portfolio Exposure - ACTIVE</div>
-                <div class="layer">Layer 5: Execution Engine - ACTIVE</div>
-                <div class="layer">Layer 6: Journal System - ACTIVE</div>
-                <div class="layer">Layer 7: Validation Engine - ACTIVE</div>
-                <div class="layer">Layer 8: Learning Loop - ACTIVE</div>
-                <div class="layer">Layer 9: Chaos Mode - MONITORING</div>
-                <div class="layer">Layer 10: Optimization - ACTIVE</div>
+                <div class="layer green">Layer 1: Data Perception - ACTIVE</div>
+                <div class="layer green">Layer 2: Feature Engine - ACTIVE</div>
+                <div class="layer green">Layer 3: Decision Engine - ACTIVE</div>
+                <div class="layer green">Layer 4A: Risk Control - ACTIVE</div>
+                <div class="layer green">Layer 4B: Portfolio Exposure - ACTIVE</div>
+                <div class="layer green">Layer 5: Execution Engine - ACTIVE</div>
+                <div class="layer green">Layer 6: Journal System - ACTIVE</div>
+                <div class="layer green">Layer 7: Validation Engine - ACTIVE</div>
+                <div class="layer green">Layer 8: Learning Loop - ACTIVE</div>
+                <div class="layer green">Layer 9: Chaos Mode - MONITORING</div>
+                <div class="layer green">Layer 10: Optimization - ACTIVE</div>
             </div>
             <div class="info">"Quality over quantity. Most days = NULL."</div>
             <div class="info" style="font-size:12px;color:#64748b;margin-top:20px">
-                Last updated: """ + datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC") + """
+                Last updated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")}
             </div>
         </body>
         </html>
-        """.encode())
+        """
+        self.wfile.write(html.encode())
     
     def log_message(self, fmt, *args):
         pass
@@ -115,48 +73,46 @@ def run_webserver():
     print(f"Web server running on port {port}")
     server.serve_forever()
 
-# Start web server in background (DOES NOT AFFECT TRADING SYSTEM)
+# Start web server in background
 webserver_thread = threading.Thread(target=run_webserver, daemon=True)
 webserver_thread.start()
 
-# ── Layer 1: Market Data ──────────────────────────────────────────────────────
+# ── LAYER 1: MARKET DATA ──────────────────────────────────────────────────────
 from market_data_feed import FeedManager, DataSource
-
-# ── Layer 1: Ancillary Feeds ─────────────────────────────────────────────────
 from economic_calendar  import EconomicCalendarManager
 from news_sentiment     import NewsSentimentManager
 from cot_report         import COTManager
 from multi_asset_feed   import MultiAssetManager
 from options_flow       import OptionsFlowManager
 
-# ── Layer 2: Feature Engine ───────────────────────────────────────────────────
+# ── LAYER 2: FEATURE ENGINE ───────────────────────────────────────────────────
 from feature_engine     import FeatureEngine, FeaturePackage
 
-# ── Layer 3: Decision Engine ──────────────────────────────────────────────────
+# ── LAYER 3: DECISION ENGINE ──────────────────────────────────────────────────
 from decision_engine    import DecisionEngine, DecisionOutput, NullType
 
-# ── Layer 4A: Risk Control ────────────────────────────────────────────────────
+# ── LAYER 4A: RISK CONTROL ────────────────────────────────────────────────────
 from risk_control       import RiskControlManager, RiskOutput, RiskState
 
-# ── Layer 4B: Portfolio Exposure ──────────────────────────────────────────────
+# ── LAYER 4B: PORTFOLIO EXPOSURE ──────────────────────────────────────────────
 from portfolio_exposure import PortfolioExposureManager, PortfolioOutput
 
-# ── Layer 5: Execution Engine ─────────────────────────────────────────────────
+# ── LAYER 5: EXECUTION ENGINE ─────────────────────────────────────────────────
 from execution_engine   import ExecutionEngine, MarketSnapshot
 
-# ── Layer 6: Journal System ───────────────────────────────────────────────────
+# ── LAYER 6: JOURNAL SYSTEM ───────────────────────────────────────────────────
 from journal_system     import JournalManager
 
-# ── Layer 7: Validation Engine ───────────────────────────────────────────────
+# ── LAYER 7: VALIDATION ENGINE ───────────────────────────────────────────────
 from validation_engine  import ValidationEngine
 
-# ── Layer 8: Learning Loop ────────────────────────────────────────────────────
+# ── LAYER 8: LEARNING LOOP ────────────────────────────────────────────────────
 from learning_loop      import LearningLoop
 
-# ── Layer 9: Chaos Mode ───────────────────────────────────────────────────────
+# ── LAYER 9: CHAOS MODE ───────────────────────────────────────────────────────
 from chaos_mode         import ChaosModeEngine, StressReading, ChaosPhase
 
-# ── Layer 10: Optimization ───────────────────────────────────────────────────
+# ── LAYER 10: OPTIMIZATION ───────────────────────────────────────────────────
 from optimization_layer import OptimizationEngine, TradeState
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -173,8 +129,6 @@ logger = logging.getLogger("SYSTEM")
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class CloudConfig:
-    """Configuration for 24/7 cloud deployment."""
-
     DEPLOYMENT_MODE = os.getenv("DEPLOYMENT_MODE", "CLOUD")
     AUTO_RESTART = True
     RESTART_DELAY_SECONDS = 5
@@ -199,7 +153,6 @@ class CloudConfig:
 
 @dataclass
 class SystemConfig:
-    """System configuration."""
     account_balance         : float = CloudConfig.ACCOUNT_BALANCE
     paper_trading           : bool  = CloudConfig.PAPER_TRADING
     pairs                   : list  = field(default_factory=lambda: CloudConfig.PAIRS)
@@ -365,7 +318,7 @@ class Layer1FeedBundle:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# BACKGROUND THREAD MANAGERS
+# BACKGROUND THREAD MANAGERS (LearningThread, OptimizationThread)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class LearningThread:
@@ -939,7 +892,7 @@ class TradingSystem:
         self._shutdown = threading.Event()
 
         logger.info("═" * 60)
-        logger.info("🐕 THE DOGMA FX SYSTEM v6.0 — INITIALISING")
+        logger.info("THE DOGMA FX SYSTEM v6.0 — INITIALISING")
         logger.info("═" * 60)
         logger.info(f"Account balance : ${cfg.account_balance:,.2f}")
         logger.info(f"Paper trading   : {cfg.paper_trading}")
@@ -1040,7 +993,7 @@ class TradingSystem:
 
         self._running = True
         logger.info("═" * 60)
-        logger.info("🐕 THE DOGMA FX SYSTEM RUNNING — press Ctrl+C to stop")
+        logger.info("THE DOGMA FX SYSTEM RUNNING — press Ctrl+C to stop")
         logger.info("═" * 60)
 
         self._main_loop()
@@ -1096,7 +1049,7 @@ class TradingSystem:
             pass
 
         logger.info("═" * 60)
-        logger.info("🐕 THE DOGMA FX SYSTEM SHUTDOWN COMPLETE")
+        logger.info("THE DOGMA FX SYSTEM SHUTDOWN COMPLETE")
         logger.info("═" * 60)
 
     def _handle_signal(self, signum, frame):
@@ -1129,7 +1082,7 @@ def main():
 
     print()
     print("╔══════════════════════════════════════════════════════════╗")
-    print("║     🐕 THE DOGMA FX SYSTEM — VERSION 6.0                ║")
+    print("║     THE DOGMA FX SYSTEM — VERSION 6.0                  ║")
     print("║     10-Layer Architecture | Evidence-Driven             ║")
     print("║     24/7 CLOUD DEPLOYMENT — FULLY AUTOMATED             ║")
     print("╠══════════════════════════════════════════════════════════╣")
