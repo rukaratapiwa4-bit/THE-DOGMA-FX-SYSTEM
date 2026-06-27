@@ -57,48 +57,47 @@ from dataclasses import dataclass, field
 from typing import Optional
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from datetime import datetime, timezone
 
 # ── WEB SERVER FOR RENDER (ADDED - DOES NOT AFFECT SYSTEM) ──
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # Handle different paths
         if self.path == "/" or self.path == "/dashboard":
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write("""
             <html>
-            <head>
-                <title>🐕 THE DOGMA FX SYSTEM</title>
-                <meta http-equiv="refresh" content="5">
-                <style>
-                    body{background:#0f1117;color:#e2e8f0;font-family:Arial;padding:40px;text-align:center}
-                    h1{font-size:48px;color:#f1f5f9}
-                    .status{color:#22c55e;font-size:24px;margin:20px 0}
-                    .info{color:#94a3b8;font-size:16px;margin:10px 0}
-                    .box{background:#1a1d27;border:1px solid #2d3142;border-radius:12px;padding:20px;max-width:600px;margin:20px auto}
-                    .layer{color:#64748b;font-size:14px;padding:5px 0;border-bottom:1px solid #1e2333}
-                    .green{color:#22c55e}
-                    .live{color:#22c55e;font-weight:bold}
-                </style>
+            <head><title>🐕 THE DOGMA FX SYSTEM</title>
+            <meta http-equiv="refresh" content="5">
+            <style>
+                body{background:#0f1117;color:#e2e8f0;font-family:Arial;padding:40px;text-align:center}
+                h1{font-size:48px;color:#f1f5f9}
+                .status{color:#22c55e;font-size:24px;margin:20px 0}
+                .info{color:#94a3b8;font-size:16px;margin:10px 0}
+                .box{background:#1a1d27;border:1px solid #2d3142;border-radius:12px;padding:20px;max-width:600px;margin:20px auto}
+                .layer{color:#64748b;font-size:14px;padding:5px 0;border-bottom:1px solid #1e2333}
+                .green{color:#22c55e}
+                .live{color:#22c55e;font-weight:bold}
+            </style>
             </head>
             <body>
-                <h1>THE DOGMA FX SYSTEM</h1>
-                <div class="status live">🟢 SYSTEM IS LIVE</div>
-                <div class="info">Version 6.0 — 10-Layer Architecture</div>
-                <div class="info">📊 Running 24/7 on Render.com</div>
+                <h1>🐕 THE DOGMA FX SYSTEM</h1>
+                <div class="status live">🐕 SYSTEM IS LIVE</div>
+                <div class="info">Version 6.0 - 10-Layer Architecture</div>
+                <div class="info">Running 24/7 on Render.com</div>
                 <div class="box">
-                    <div class="layer">✅ Layer 1: Data Perception — ACTIVE</div>
-                    <div class="layer">✅ Layer 2: Feature Engine — ACTIVE</div>
-                    <div class="layer">✅ Layer 3: Decision Engine — ACTIVE</div>
-                    <div class="layer">✅ Layer 4A: Risk Control — ACTIVE</div>
-                    <div class="layer">✅ Layer 4B: Portfolio Exposure — ACTIVE</div>
-                    <div class="layer">✅ Layer 5: Execution Engine — ACTIVE</div>
-                    <div class="layer">✅ Layer 6: Journal System — ACTIVE</div>
-                    <div class="layer">✅ Layer 7: Validation Engine — ACTIVE</div>
-                    <div class="layer">✅ Layer 8: Learning Loop — ACTIVE</div>
-                    <div class="layer">✅ Layer 9: Chaos Mode — MONITORING</div>
-                    <div class="layer">✅ Layer 10: Optimization — ACTIVE</div>
+                    <div class="layer">Layer 1: Data Perception - ACTIVE</div>
+                    <div class="layer">Layer 2: Feature Engine - ACTIVE</div>
+                    <div class="layer">Layer 3: Decision Engine - ACTIVE</div>
+                    <div class="layer">Layer 4A: Risk Control - ACTIVE</div>
+                    <div class="layer">Layer 4B: Portfolio Exposure - ACTIVE</div>
+                    <div class="layer">Layer 5: Execution Engine - ACTIVE</div>
+                    <div class="layer">Layer 6: Journal System - ACTIVE</div>
+                    <div class="layer">Layer 7: Validation Engine - ACTIVE</div>
+                    <div class="layer">Layer 8: Learning Loop - ACTIVE</div>
+                    <div class="layer">Layer 9: Chaos Mode - MONITORING</div>
+                    <div class="layer">Layer 10: Optimization - ACTIVE</div>
                 </div>
                 <div class="info">"Quality over quantity. Most days = NULL."</div>
                 <div class="info" style="font-size:12px;color:#64748b;margin-top:20px">
@@ -117,19 +116,6 @@ class HealthHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b"Page not found")
     
-    def log_message(self, fmt, *args):
-        pass
-        <head><title>THE DOGMA FX SYSTEM</title></head>
-        <body style="background:#0f1117;color:#e2e8f0;font-family:Arial;padding:40px;text-align:center">
-            <h1 style="font-size:48px">THE DOGMA FX SYSTEM</h1>
-            <p style="font-size:20px;color:#94a3b8">Version 6.0 — Running on Render 24/7</p>
-            <p style="font-size:16px;color:#64748b">"Quality over quantity. Most days = NULL."</p>
-            <hr style="border-color:#2d3142;margin:30px 0">
-            <p style="color:#22c55e">✅ System is LIVE and RUNNING</p>
-            <p style="font-size:14px;color:#64748b">All 10 layers active | Paper Trading Mode</p>
-        </body>
-        </html>
-        """)
     def log_message(self, fmt, *args):
         pass
 
