@@ -65,7 +65,7 @@ class HealthHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        self.wfile.write(b"""
+        self.wfile.write("""
         <html>
         <head><title>🐕 THE DOGMA FX SYSTEM</title></head>
         <body style="background:#0f1117;color:#e2e8f0;font-family:Arial;padding:40px;text-align:center">
